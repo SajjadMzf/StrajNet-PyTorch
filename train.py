@@ -12,13 +12,13 @@ from google.protobuf import text_format
 import csv 
 import argparse
 from metrics import OGMFlowMetrics,print_metrics
-
+from inference import _parse_image_function_test
 layer = tf.keras.layers
 
 gpus = tf.config.list_physical_devices('GPU')
 print(gpus)
 for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
+    tf.config.experimental.set_memory_growth(gpu, True) 
 tf.config.experimental.set_visible_devices(gpus, 'GPU')
 print(len(gpus), "Physical GPU(s),")
 
@@ -45,12 +45,13 @@ text_format.Parse(config_text, config)
 print(config)
 
 parser = argparse.ArgumentParser(description='Training')
-parser.add_argument('--save_dir', type=str, help='saving directory',default="")
-parser.add_argument('--file_dir', type=str, help='Training Val Dataset directory',default="./Waymo_Dataset/preprocessed_data")
+parser.add_argument('--save_dir', type=str, help='saving directory',default="/media/wmg-5gcat/ssd-roger/Waymo_Dataset/saved")
+
+parser.add_argument('--file_dir', type=str, help='Training Val Dataset directory',default="/media/wmg-5gcat/ssd-roger/Waymo_Dataset/preprocessed_data") # ./Waymo_Dataset/preprocessed_data
 parser.add_argument('--model_path', type=str, help='loaded weight path',default=None)
-parser.add_argument('--batch_size', type=int, help='batch_size',default=16)
+parser.add_argument('--batch_size', type=int, help='batch_size',default=4)
 parser.add_argument('--epochs', type=int, help='training eps',default=15)
-parser.add_argument('--lr', type=float, help='initial learning rate',default=1e-4)
+parser.add_argument('--lr', type=float, help='initial learning rate',default=1e-10)
 args = parser.parse_args()
 
 # Hyper parameters
@@ -379,13 +380,13 @@ if __name__ == "__main__":
     print(f'{len(filenames)} found, start loading dataset')
     train_dataset = tf.data.TFRecordDataset(filenames, compression_type='')
     train_dataset = train_dataset.shuffle(64,reshuffle_each_iteration=True)
-    train_dataset = train_dataset.map(_parse_image_function_test)
+    train_dataset = train_dataset.map(_parse_image_function) # _parse_image_function_test
     train_dataset = train_dataset.batch(BATCH_SIZE)
 
     v_filenames = tf.io.matching_files(f'{args.file_dir}/val/*.tfrecords')
     print(f'{len(v_filenames)} found, start loading dataset')
     valid_dataset = tf.data.TFRecordDataset(v_filenames, compression_type='')
-    valid_dataset = valid_dataset.map(_parse_image_function)
+    valid_dataset = valid_dataset.map(_parse_image_function_test) # _parse_image_function
     valid_dataset = valid_dataset.batch(BATCH_SIZE)
 
     print('file loaded! start training...')

@@ -4,9 +4,9 @@ import numpy as np
 from tqdm import tqdm
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
-from swinT import SwinTransformerEncoder , SwinTransformerDecoder,CFGS
+from modules import STrajNet, SwinTransformerEncoder ,CFGS #, SwinTransformerDecoder 
 
-from loss import OGMFlow_loss , OGMFlow_loss2
+from loss import OGMFlow_loss #, OGMFlow_loss2
 
 from waymo_open_dataset.protos import occupancy_flow_metrics_pb2
 from waymo_open_dataset.protos import occupancy_flow_submission_pb2
@@ -138,7 +138,6 @@ def _apply_sigmoid_to_occupancy_logits(
 
 print('load_model...')
 
-from swinT import STrajNet
 cfg=dict(input_size=(512,512), window_size=8, embed_dim=96, depths=[2,2,2], num_heads=[3,6,12])
 model = STrajNet(cfg,sep_actors=False)
 

@@ -1,5 +1,6 @@
 import os 
 os.environ['CUDA_VISIBLE_DEVICES']='-1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import matplotlib.pyplot as plt  
 import tensorflow as tf
 
@@ -22,7 +23,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 import argparse
-import os
+
+import pdb
 mpl.use('Agg')
 
 def extract_lines(xy, id, typ):
@@ -60,7 +62,7 @@ class Processor(object):
         self.dataset_length = len(list(dataset.as_numpy_iterator()))
         dataset = dataset.map(occupancy_flow_data.parse_tf_example)
         self.datalist = dataset.batch(1)
-        # self.datalist = list(dataset.as_numpy_iterator())
+        #self.datalist = list(dataset.as_numpy_iterator())
     
     def get_config(self):
         config = occupancy_flow_metrics_pb2.OccupancyFlowTaskConfig()
@@ -383,7 +385,7 @@ class Processor(object):
     def workflow(self,pred=False,val=False):
         i = 0
         self.pbar = tqdm(total=self.dataset_length)
-        num = self.filename.split('-')[1]
+        num = self.filename.split('-')[3]
         writer = self.build_saving_tfrecords(pred, val,num)
         
         for dataframe in self.datalist:
@@ -477,19 +479,19 @@ if __name__=="__main__":
     from glob import glob
 
     parser = argparse.ArgumentParser(description='Data-preprocessing')
-    parser.add_argument('--ids_dir', type=str, help='ids.txt downloads from Waymos', default="./Waymo_Dataset/occupancy_flow_challenge/")
-    parser.add_argument('--save_dir', type=str, help='saving directory',default="./Waymo_Dataset/preprocessed_data/")
-    parser.add_argument('--file_dir', type=str, help='Dataset directory',default="./Waymo_Dataset/tf_example")
+    parser.add_argument('--ids_dir', type=str, help='ids.txt downloads from Waymos', default="/media/wmg-5gcat/ssd-roger/Waymo_Dataset/occupancy_flow_challenge")
+    parser.add_argument('--save_dir', type=str, help='saving directory',default="/media/wmg-5gcat/ssd-roger/Waymo_Dataset/preprocessed_data")
+    parser.add_argument('--file_dir', type=str, help='Dataset directory',default="/media/wmg-5gcat/ssd-roger/Waymo_Dataset/tf_example")
     parser.add_argument('--pool', type=int, help='num of pooling multi-processes in preprocessing',default=2)
     args = parser.parse_args()
 
     NUM_POOLS = args.pool
 
-    # train_files = glob(f'{args.file_dir}/training/*')
-    # print(f'Processing training data...{len(train_files)} found!')
-    # print('Starting processing pooling...')
-    # with Pool(NUM_POOLS) as p:
-    #     p.map(process_training_data, train_files[:1])
+    train_files = glob(f'{args.file_dir}/training/*')
+    print(f'Processing training data...{len(train_files)} found!')
+    print('Starting processing pooling...')
+    with Pool(NUM_POOLS) as p:
+        p.map(process_training_data, train_files[:1])
     
     val_files = glob(f'{args.file_dir}/validation/*')
     print(f'Processing validation data...{len(val_files)} found!')
@@ -497,8 +499,8 @@ if __name__=="__main__":
     with Pool(NUM_POOLS) as p:
         p.map(process_val_data, val_files[:1])
     
-    # test_files = glob(f'{args.file_dir}/testing/*')
-    # print(f'Processing validation data...{len(test_files)} found!')
-    # print('Starting processing pooling...')
-    # with Pool(NUM_POOLS) as p:
-    #     p.map(process_test_data, test_files[:1])
+    test_files = glob(f'{args.file_dir}/testing/*')
+    print(f'Processing validation data...{len(test_files)} found!')
+    print('Starting processing pooling...')
+    with Pool(NUM_POOLS) as p:
+        p.map(process_test_data, test_files[:1])
